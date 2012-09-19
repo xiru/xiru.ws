@@ -26,6 +26,7 @@ setup(name='xiru.ws',
       install_requires=[
           'setuptools',
           'five.grok',
+          'suds',
           # -*- Extra requirements: -*-
       ],
       entry_points="""
