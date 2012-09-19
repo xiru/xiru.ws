@@ -2,4 +2,13 @@
    xmlns="http://namespaces.zope.org/zope"
    xmlns:browser="http://namespaces.zope.org/browser"
    i18n_domain="xiru.ws">
+
+  <browser:page
+      for="plone.app.layout.navigation.interfaces.INavigationRoot"
+      name="ws"
+      class=".views.WSView"
+      permission="zope.Public"
+      allowed_interface="xiru.ws.interfaces.IWS"
+      />
+
 </configure>
