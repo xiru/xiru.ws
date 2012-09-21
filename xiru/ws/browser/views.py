@@ -1,17 +1,37 @@
+import hashlib
 import json
+from xiru.ws import memcache
 from suds.client import Client
 from zope.interface import implements
 from five import grok
 from plone.app.layout.navigation.interfaces import INavigationRoot
 from Products.Five import BrowserView
 from xiru.ws.interfaces import IWS
+from xiru.ws.config import DEFAULT_TIMEOUT, DEFAULT_CACHE
 
 def _execute(**kwargs):
     """ Run webservice call.
     """
-    w = kwargs.get('w', 'http://192.168.1.26:8080/axis/Xiru.jws?wsdl')
-    m = kwargs.get('m', 'echo')
-    return getattr(Client(w).service, m)(**kwargs)
+    
+    # calcule the cache key
+    m = hashlib.md5()
+    m.update(repr(kwargs))
+    chave = m.hexdigest()
+
+    # create the memcached connection
+    mc = memcache.Client(['127.0.0.1:11211'])  
+
+    valor = mc.get(chave)
+    if valor is None:
+        wsdl = kwargs.get('wsdl', 
+                   'http://192.168.1.26:8080/axis/Xiru.jws?wsdl')
+        meth = kwargs.get('meth', 'echo')
+        timeout = kwargs.get('timeout', DEFAULT_TIMEOUT)
+        cache = kwargs.get('cache', DEFAULT_CACHE)
+        client = Client(wsdl, timeout = timeout)
+        valor = getattr(client.service, meth)(**kwargs)
+        mc.set(chave, valor, cache)
+    return valor
 
 class WSJson(grok.View):
     """ A view that calls a webservice and return json.
